@@ -1,44 +1,172 @@
-# AI-Powered-Tic-Tac-Toe-Game-using-Minimax-with-Alpha-Beta-Pruning
-This repository contains a complete implementation of the Tic-Tac-Toe game (3x3 grid) with an AI agent that uses the Minimax algorithm enhanced by Alpha-Beta Pruning to play optimally. This means the AI will never lose and will always choose the best possible move given the current state of the board.
+X = "X"
+O = "O"
 
-📝 Problem Statement
-Tic-Tac-Toe, also known as noughts and crosses or Xs and Os, is a classic two-player game played on a 3×3 grid. Players take turns marking the spaces with their respective symbols — X or O. The player who succeeds in placing three of their marks in a horizontal, vertical, or diagonal row wins the game.
+def initial_state():
+ return [["", "", ""],
+         ["", "", ""],
+         ["", "", ""]]
 
-The goal of this project is to implement an AI-powered Tic-Tac-Toe game using the Minimax algorithm enhanced with Alpha-Beta Pruning. The AI must evaluate the game board and return the optimal move for the current player, ensuring a perfect strategy that never loses.
+def player(board):
+ xCount = 0
+ oCount = 0
 
-Game Rules
-Two players: one uses X, the other uses O.
-Players alternate turns.
-The player who places three of their marks in a row, column, or diagonal wins.
-If all cells are filled without a winner, the game ends in a draw.
+ for r in board:
+  for i in r:
+   if i == X:
+    xCount += 1
 
-Functions Implemented
-initial_state()
-Initializes the empty 3x3 board.
+   elif i == O:
+    oCount += 1
 
-player(board)
-Returns whose turn it is — either 'X' or 'O'.
+ if xCount <= oCount:
+  return X
+ return O
 
-actions(board)
-Returns the set of valid moves available on the current board.
+def actions(board):
+ result = []
+ for r in range(3):
+  for i in range(3):
+   if board[r][i] == "":
+    result += [(r, i)]
+ return result
 
-result(board, action)
-Returns a new board state after making a given move.
+def result(board, action):
+ if action not in actions(board):
+  print("Invalid move")
+  return board
 
-winner(board)
-Returns the winner, if there is one.
+ c, j = action
+ newBoard = [row[:] for row in board]
+ newBoard[c][j] = player(board)
+ return newBoard
 
-terminal(board)
-Checks if the game is over.
+def winner(board):
+ for r in range(3):
+  if board[r][0] == board[r][1] == board[r][2] and board[r][0] != "":
+   return board[r][0]
 
-utility(board)
-Returns:
+ for i in range(3):
+  if board[0][i] == board[1][i] == board[2][i] and board[0][i] != "":
+   return board[0][i]
 
-+1 if 'X' wins
--1 if 'O' wins
-0 for a draw
+ if board[0][0] == board[1][1] == board[2][2] and board[0][0] != "":
+  return board[0][0]
 
-alpha_beta_pruning(board)
-Core function that uses the Minimax algorithm with Alpha-Beta Pruning to return the best move for the current player.
+ if board[0][2] == board[1][1] == board[2][0] and board[0][2] != "":
+  return board[0][2]
 
+ return None
 
+def terminal(board):
+ if winner(board) is not None:
+  return True
+
+ for r in board:
+  for i in r:
+   if i == "":
+    return False
+ return True
+
+def utility(board):
+ w = winner(board)
+ if w == X:
+  return 1
+
+ if w == O:
+  return -1
+ return 0
+
+def alphaBetaPruning(board, alpha=-1000, beta=1000):
+ if terminal(board):
+  return None, utility(board)
+
+ currPlayer = player(board)
+ m = actions(board)
+
+ if currPlayer == X:
+  v = -1000
+  bmove = None
+
+  for move in m:
+   newBoard = result(board, move)
+   nmove, bval = alphaBetaPruning(newBoard, alpha, beta)
+
+   if bval > v:                #bval is the value deciding if move is +1 (good) or -1 (bad)
+    v = bval
+    bmove = move
+   alpha = max(alpha, v)
+
+   if alpha >= beta:
+    break
+  return bmove, v
+
+ else:
+  v = 1000
+  bmove = None
+
+  for move in m:
+   newBoard = result(board, move)
+   nmove, bval = alphaBetaPruning(newBoard, alpha, beta)
+
+   if bval < v:
+    v = bval
+    bmove = move
+   beta = min(beta, v)
+
+   if alpha >= beta:
+    break
+  return bmove, v
+
+def printBoard(board):
+ for r in board:
+  Board = ""
+  for i in r:
+   if i == "":
+    Board += "   "
+
+   else:
+    Board += " " + i + " "
+   Board += "|"
+
+  print(Board[:-1])
+  print("-" * 9)
+
+def main():
+ board = initial_state()
+ print("Tic-Tac-Toe")
+
+ printBoard(board)
+ while not terminal(board):
+
+  if player(board) == X:
+   print("Computer (X) is making a move")
+   move, val = alphaBetaPruning(board)
+
+  else:
+   while True:
+
+    try:                                        # error handling under this block
+     r = int(input("enter row b/w 0-2: "))
+     i = int(input("enter col b/w 0-2: "))
+     move = (r, i)
+
+     if move in actions(board):
+      break
+     print("invalid move, try again.")
+
+    except ValueError:                               #from geeksforgeeks prevents program from crashing if user enters any non int value, good approach to handling errors like these
+     print("invalid input, enter again b/w 0-2.")
+
+  if move is not None:
+   board = result(board, move)
+   printBoard(board)
+
+ w = winner(board)
+
+ if w is not None:
+  print(f"game over {w} is winner!")
+ else:
+  print("It's a tie!")
+
+if __name__ == "__main__":
+ main()
