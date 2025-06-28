@@ -154,7 +154,7 @@ def main():
       break
      print("invalid move, try again.")
 
-    except ValueError:                               #from geeksforgeeks prevents program from crashing if user enters any non int value, good approach to handling errors like these
+    except ValueError:                               
      print("invalid input, enter again b/w 0-2.")
 
   if move is not None:
